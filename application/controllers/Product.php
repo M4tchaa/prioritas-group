@@ -7,8 +7,10 @@ class Product extends CI_Controller {
         $this->load->model('Product_model');
         $this->load->database();
         $this->load->helper('url');
-        $this->load->library('pagination');
+        // $this->load->library('pagination');
         $this->load->library('session');
+        $this->load->library('form_validation');
+
     }
 
     // Menampilkan daftar produk
@@ -45,14 +47,28 @@ class Product extends CI_Controller {
     }
 
     public function save() {
-        $data = [
-            'name' => $this->input->post('name'),
-            'price' => $this->input->post('price'),
-            'stock' => $this->input->post('stock'),
-            'is_sell' => $this->input->post('is_sell')
-        ];
-        $this->Product_model->insert_product($data);
-        redirect('product');
+        // Aturan validasi
+        $this->form_validation->set_rules('name', 'Nama Produk', 'required');
+        $this->form_validation->set_rules('price', 'Harga', 'required|numeric|greater_than[0]'); // Validasi harga lebih dari 0
+        $this->form_validation->set_rules('stock', 'Stok', 'required|numeric|greater_than[0]'); // Validasi stok lebih dari 0
+        $this->form_validation->set_rules('is_sell', 'Status', 'required');
+    
+        if ($this->form_validation->run() == FALSE) {
+            // Jika validasi gagal
+            $this->session->set_flashdata('error', 'Harga dan Stok harus lebih besar dari 0');
+            redirect('product/add'); // Redirect ke halaman tambah produk
+        } else {
+            // Jika validasi berhasil, simpan produk
+            $data = [
+                'name' => $this->input->post('name'),
+                'price' => $this->input->post('price'),
+                'stock' => $this->input->post('stock'),
+                'is_sell' => $this->input->post('is_sell')
+            ];
+            $this->Product_model->insert_product($data);
+            $this->session->set_flashdata('success', 'Produk berhasil ditambahkan');
+            redirect('product'); // Redirect ke halaman produk
+        }
     }
 
     // Edit produk
@@ -62,15 +78,30 @@ class Product extends CI_Controller {
     }
 
     public function update($id) {
-        $data = [
-            'name' => $this->input->post('name'),
-            'price' => $this->input->post('price'),
-            'stock' => $this->input->post('stock'),
-            'is_sell' => $this->input->post('is_sell')
-        ];
-        $this->Product_model->update_product($id, $data);
-        redirect('product');
+        // Menambahkan validasi
+        $this->form_validation->set_rules('name', 'Nama Produk', 'required');
+        $this->form_validation->set_rules('price', 'Harga', 'required|numeric|greater_than[0]'); // Validasi harga lebih dari 0
+        $this->form_validation->set_rules('stock', 'Stok', 'required|numeric|greater_than[0]'); // Validasi stok lebih dari 0
+        $this->form_validation->set_rules('is_sell', 'Status', 'required');
+    
+        if ($this->form_validation->run() === FALSE) {
+            // Jika validasi gagal, tampilkan SweetAlert dan kembali ke halaman form edit
+            $this->session->set_flashdata('error', 'Harga atau Stok Tidak Valid!');
+            $data['product'] = $this->Product_model->get_product_by_id($id);
+            $this->load->view('product_edit', $data);
+        } else {
+            // Jika validasi berhasil, update data produk
+            $data = [
+                'name' => $this->input->post('name'),
+                'price' => $this->input->post('price'),
+                'stock' => $this->input->post('stock'),
+                'is_sell' => $this->input->post('is_sell')
+            ];
+            $this->Product_model->update_product($id, $data);
+            redirect('product');
+        }
     }
+    
 
     // Hapus produk
     public function delete($id) {
