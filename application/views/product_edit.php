@@ -24,6 +24,6 @@
     </div>
     <button type="submit" class="btn btn-success">Simpan Perubahan</button>
     <a href="<?= base_url('product'); ?>" class="btn btn-secondary">Batal</a>
-    <a href="<?= base_url('product/delete/'.$product['id']); ?>" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">Hapus Produk</a>
+    <a href="<?= base_url('product/delete/'.$product['id']); ?>" class="btn btn-danger delete-edit-product" data-id="<?= $product['id']; ?>">Hapus Produk</a>
 </form>
 <?php include('layout/footer.php'); ?>
