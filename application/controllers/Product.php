@@ -11,13 +11,35 @@ class Product extends CI_Controller {
         $this->load->library('session');
     }
 
-    // Menilkan daftar produk
+    // Menampilkan daftar produk
     public function index() {
-        $data['products'] = $this->Product_model->get_all_products();
+        $search = $this->input->get('search');
+        $sort_by = $this->input->get('sort_by', TRUE); // Ambil parameter sort_by
+        $order = $this->input->get('order', TRUE) ?: 'asc'; // Ambil parameter order, default asc
+
+        // Menangani pencarian
+        if ($search) {
+            $this->db->like('name', $search);
+        }
+
+        // Menangani sorting
+        if ($sort_by) {
+            $this->db->order_by($sort_by, $order);
+        }
+
+        // Ambil data produk
+        $products = $this->db->get('products')->result_array();
+
+        // Kirim data ke view
+        $data['products'] = $products;
+        $data['search'] = $search;
+        $data['sort_by'] = $sort_by;
+        $data['order'] = $order;
+
         $this->load->view('product_list', $data);
     }
 
-    // add produk
+    // Add produk
     public function add() {
         $this->load->view('product_add');
     }
@@ -33,10 +55,9 @@ class Product extends CI_Controller {
         redirect('product');
     }
 
-    // edit produk
+    // Edit produk
     public function edit($id) {
         $data['product'] = $this->Product_model->get_product_by_id($id);
-
         $this->load->view('product_edit', $data);
     }
 
@@ -51,7 +72,7 @@ class Product extends CI_Controller {
         redirect('product');
     }
 
-    // hapus produk
+    // Hapus produk
     public function delete($id) {
         if ($this->Product_model->delete_product($id)) {
             $this->session->set_flashdata('success', 'Produk berhasil dihapus.');
@@ -60,12 +81,16 @@ class Product extends CI_Controller {
         }
         redirect('product');
     }
-    
 
     // Update status produk
     public function update_status() {
         $id = $this->input->post('id');
         $status = $this->input->post('status');
-        $this->Product_model->update_product_status($id, $status);
+    
+        if ($this->Product_model->update_product_status($id, $status)) {
+            echo json_encode(["success" => true]);
+        } else {
+            echo json_encode(["success" => false]);
+        }
     }
 }

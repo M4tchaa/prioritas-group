@@ -1,4 +1,5 @@
-</div> <!-- Tutup container -->
+        </div><!-- Tutup container -->
+    </div><!-- Tutup d-flex -->
 
 <footer class="bg-dark text-white text-center py-3 mt-4">
     &copy; <?= date('Y'); ?> Prioritas Group. All Rights Reserved.
